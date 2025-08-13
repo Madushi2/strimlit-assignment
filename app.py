@@ -132,10 +132,3 @@ if st.button("Predict Survival", type="primary"):
         st.error(f"Prediction error: {str(e)}")
 
 
-echo "# strimlit-assignment" >> README.md
-git init
-git add .
-git commit -m "first commit"
-git branch -M main
-git remote add origin https://github.com/Madushi2/strimlit-assignment.git
-git push -u origin main

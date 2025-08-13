@@ -1,6 +1,5 @@
-
-
-scikit-learn>=1.0.0  # If using sklearn
-tensorflow>=2.0.0   # If using TF
-torch>=1.0.0        # If using PyTorch
-numpy>=1.0.0        # Almost always needed
+streamlit>=1.48.0
+pandas>=2.0.0
+numpy>=1.24.0
+plotly>=5.18.0
+scikit-learn>=1.0.0

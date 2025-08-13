@@ -1,9 +1,10 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-
 import pickle
 import warnings
+import plotly.graph_objects as go  # Explicit import at top level
+
 warnings.filterwarnings('ignore')
 
 # Page setup
@@ -21,25 +22,31 @@ def load_model():
             model_data = pickle.load(f)
         return model_data
     except FileNotFoundError:
-        st.error("Model not found. Please ensure 'titanic_model.pkl' exists.")
+        st.error("Model file 'titanic_model.pkl' not found. Please ensure it exists in your repository.")
+        return None
+    except Exception as e:
+        st.error(f"Error loading model: {str(e)}")
         return None
 
 # Input preprocessing
 def preprocess_input(data, label_encoders):
     data['FamilySize'] = data['SibSp'] + data['Parch'] + 1
-    data['IsAlone'] = int(data['FamilySize'] == 1)
+    data['IsAlone'] = 1 if data['FamilySize'] == 1 else 0
 
+    # Encode categorical features
     data['Sex_encoded'] = label_encoders['sex'].transform([data['Sex']])[0]
     data['Embarked_encoded'] = label_encoders['embarked'].transform([data['Embarked']])[0]
-
+    
+    # Extract title
     if data['Sex'] == 'male':
         title = 'Mr' if data['Age'] >= 18 else 'Master'
     else:
         title = 'Mrs' if data['Age'] >= 18 else 'Miss'
-
+    
     try:
         data['Title_encoded'] = label_encoders['title'].transform([title])[0]
     except ValueError:
+        # Fallback for unseen titles
         data['Title_encoded'] = 0
 
     features = ['Pclass', 'Sex_encoded', 'Age', 'SibSp', 'Parch', 
@@ -87,7 +94,8 @@ if st.button("Predict Survival", type="primary"):
         processed_input = preprocess_input(input_data, model_data['label_encoders'])
         model = model_data['model']
 
-        if model_data['model_name'] != 'Random Forest':
+        # Apply scaling if needed
+        if 'scaler' in model_data and model_data['scaler'] is not None:
             processed_input = model_data['scaler'].transform(processed_input)
 
         prediction = model.predict(processed_input)[0]
@@ -122,13 +130,12 @@ if st.button("Predict Survival", type="primary"):
                 'threshold': {
                     'line': {'color': "red", 'width': 4},
                     'thickness': 0.75,
-                    'value': 90
+                    'value': probability[1] * 100
                 }
             }
         ))
+        fig_gauge.update_layout(height=300)
         st.plotly_chart(fig_gauge, use_container_width=True)
 
     except Exception as e:
         st.error(f"Prediction error: {str(e)}")
-
-

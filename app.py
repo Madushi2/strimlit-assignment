@@ -1,10 +1,9 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+
 import pickle
 import warnings
-import plotly.graph_objects as go  # ✅ Needed for the gauge chart
-
 warnings.filterwarnings('ignore')
 
 # Page setup
@@ -22,7 +21,7 @@ def load_model():
             model_data = pickle.load(f)
         return model_data
     except FileNotFoundError:
-        st.error("Model not found. Please ensure 'titanic_model.pkl' exists in your project folder.")
+        st.error("Model not found. Please ensure 'titanic_model.pkl' exists.")
         return None
 
 # Input preprocessing
@@ -41,12 +40,10 @@ def preprocess_input(data, label_encoders):
     try:
         data['Title_encoded'] = label_encoders['title'].transform([title])[0]
     except ValueError:
-        data['Title_encoded'] = 0  # Handle unknown titles gracefully
+        data['Title_encoded'] = 0
 
-    features = [
-        'Pclass', 'Sex_encoded', 'Age', 'SibSp', 'Parch', 
-        'Fare', 'Embarked_encoded', 'FamilySize', 'IsAlone', 'Title_encoded'
-    ]
+    features = ['Pclass', 'Sex_encoded', 'Age', 'SibSp', 'Parch', 
+                'Fare', 'Embarked_encoded', 'FamilySize', 'IsAlone', 'Title_encoded']
     
     return np.array([[data[feature] for feature in features]])
 
@@ -90,7 +87,6 @@ if st.button("Predict Survival", type="primary"):
         processed_input = preprocess_input(input_data, model_data['label_encoders'])
         model = model_data['model']
 
-        # Apply scaling if model is not Random Forest
         if model_data['model_name'] != 'Random Forest':
             processed_input = model_data['scaler'].transform(processed_input)
 
@@ -134,3 +130,5 @@ if st.button("Predict Survival", type="primary"):
 
     except Exception as e:
         st.error(f"Prediction error: {str(e)}")
+
+
